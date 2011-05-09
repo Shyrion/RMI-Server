@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 
-
 public class Chatroom extends UnicastRemoteObject implements Distante{
 
 	ArrayList<String> users;
@@ -32,7 +31,7 @@ public class Chatroom extends UnicastRemoteObject implements Distante{
 	@Override
 	public String echo() throws RemoteException {
 		System.out.println("Echo depuis le serveur !");
-		return "Salut !";
+		return "Salut!";
 	}
 
 	@Override
