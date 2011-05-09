@@ -17,7 +17,7 @@ public class Chatroom extends UnicastRemoteObject implements Distante{
 	protected Chatroom() throws RemoteException {
 		super();
 		users = new ArrayList<String>();
-	}
+	} 
 	
 	public static void main(String[] args){
 		try {
