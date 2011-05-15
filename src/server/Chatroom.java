@@ -8,6 +8,8 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import client.IClient;
+
 
 public class Chatroom extends UnicastRemoteObject implements Distante{
 
@@ -35,15 +37,16 @@ public class Chatroom extends UnicastRemoteObject implements Distante{
 	}
 
 	@Override
-	public boolean login(String nom) throws RemoteException {
-		System.out.println(nom);
+	public boolean login(String login, String password, IClient client) throws RemoteException {
+		System.out.println(login);
+		client.notify("Welcome to the chatroom " + this);
 		return true;
 	}
 	
-	public boolean logout(String nom) throws RemoteException {
+	public boolean logout(String login) throws RemoteException {
 		for(int i=0; i<users.size(); i++){
-			if (users.get(i).equals(nom)) users.remove(i);
-			System.out.println("Users " + nom + " logout !");
+			if (users.get(i).equals(login)) users.remove(i);
+			System.out.println("Users " + login + " logout !");
 			return true;
 		}
 		return false;
