@@ -1,33 +1,30 @@
 package server;
-import java.net.MalformedURLException;
-import java.rmi.Naming;
+
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 import client.IClient;
 
-
-public class Chatroom extends UnicastRemoteObject implements Distante{
+public class Chatroom extends UnicastRemoteObject implements Distante {
 
 	ArrayList<IClient> users;
 	String name;
-	
+
 	protected Chatroom() throws RemoteException {
 		super();
 		users = new ArrayList<IClient>();
 	}
-	
+
 	protected Chatroom(String name) throws RemoteException {
 		super();
 		this.name = name;
 		users = new ArrayList<IClient>();
-	} 
-	
-	public static void main(String[] args){
+	}
+
+	public static void main(String[] args) {
 		try {
 			Registry reg = LocateRegistry.getRegistry();
 			Distante obj = new Chatroom("Chatroom 1");
@@ -44,14 +41,14 @@ public class Chatroom extends UnicastRemoteObject implements Distante{
 	}
 
 	@Override
-	public boolean login(String login, String password, IClient client) throws RemoteException {
-
-		try{
+	public boolean login(String login, String password, IClient client)
+	          throws RemoteException {
+		try {
 			users.add(client);
 			client.setName(login);
 			notifyAllConnect(client.getName());
 			return true;
-		} catch (Exception e){
+		} catch (Exception e) {
 			return false;
 		}
 	}
@@ -62,43 +59,57 @@ public class Chatroom extends UnicastRemoteObject implements Distante{
 			users.remove(client);
 			notifyAllDisconnect(client.getName());
 			return true;
-		} catch (Exception e){
+		} catch (Exception e) {
 			return false;
 		}
 	}
-	
-	public boolean sendPrivateMessage(IClient sender, IClient receiver, String message) throws RemoteException {
+
+	public boolean sendPrivateMessage(IClient sender, IClient receiver, String message)
+	          throws RemoteException {
 		sender.notify(sender.getName() + " says: " + message);
 		receiver.notify(sender.getName() + " says: " + message);
 		return true;
 	}
-	
-	public boolean broadCastMessage(IClient sender, String message)  throws RemoteException {
-		try{
+
+	public boolean broadCastMessage(IClient sender, String message)
+	          throws RemoteException {
+		try {
 			notifyAll(sender.getName() + " says: " + message);
 			return true;
-		} catch (Exception e){
+		} catch (Exception e) {
+			System.err.println(e);
 			return false;
 		}
 	}
-	
+
 	private void notifyAllConnect(String message) throws RemoteException {
-		for(IClient i : users){
-			i.notifyConnect(message);
+		for (IClient i : users) {
+			try {
+				i.notifyConnect(message);
+			} catch (Exception e) {
+				System.err.println(e);
+			}
 		}
 	}
-	
+
 	private void notifyAllDisconnect(String message) throws RemoteException {
-		for(IClient i : users){
-			i.notifyDisconnect(message);
+		for (IClient i : users) {
+			try {
+				i.notifyDisconnect(message);
+			} catch (Exception e) {
+				System.err.println(e);
+			}
 		}
 	}
-	
+
 	private void notifyAll(String message) throws RemoteException {
-		for(IClient i : users){
-			i.notify(message);
-			System.out.println(i.getName() + ", ");
+		for (IClient i : users) {
+			try {
+				i.notify(message);
+			} catch (Exception e) {
+				System.err.println(e);
+			}
 		}
 	}
-	
+
 }
