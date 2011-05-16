@@ -67,17 +67,13 @@ public class Chatroom extends UnicastRemoteObject implements Distante{
 		}
 	}
 	
-	public boolean sendPrivateMessage(IClient sender, IClient receiver, String message){
-		try{
-			sender.notify(sender.getName() + " says: " + message);
-			receiver.notify(sender.getName() + " says: " + message);
-			return true;
-		} catch (Exception e){
-			return false;
-		}
+	public boolean sendPrivateMessage(IClient sender, IClient receiver, String message) throws RemoteException {
+		sender.notify(sender.getName() + " says: " + message);
+		receiver.notify(sender.getName() + " says: " + message);
+		return true;
 	}
 	
-	public boolean broadCastMessage(IClient sender, String message){
+	public boolean broadCastMessage(IClient sender, String message)  throws RemoteException {
 		try{
 			notifyAll(sender.getName() + " says: " + message);
 			return true;
