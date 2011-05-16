@@ -13,17 +13,24 @@ import client.IClient;
 
 public class Chatroom extends UnicastRemoteObject implements Distante{
 
-	ArrayList<String> users;
+	ArrayList<IClient> users;
+	String name;
 	
 	protected Chatroom() throws RemoteException {
 		super();
-		users = new ArrayList<String>();
+		users = new ArrayList<IClient>();
+	}
+	
+	protected Chatroom(String name) throws RemoteException {
+		super();
+		this.name = name;
+		users = new ArrayList<IClient>();
 	} 
 	
 	public static void main(String[] args){
 		try {
 			Registry reg = LocateRegistry.getRegistry();
-			Distante obj = new Chatroom();
+			Distante obj = new Chatroom("Chatroom 1");
 			reg.rebind("cr1", obj);
 		} catch (RemoteException e) {
 			e.printStackTrace();
@@ -38,18 +45,33 @@ public class Chatroom extends UnicastRemoteObject implements Distante{
 
 	@Override
 	public boolean login(String login, String password, IClient client) throws RemoteException {
-		System.out.println(login);
-		client.notify("Welcome to the chatroom " + this);
-		return true;
+
+		try{
+			users.add(client);
+			client.setName(login);
+			notifyAll(client.getName() +  " has join the channel");
+			return true;
+		} catch (Exception e){
+			return false;
+		}
 	}
 	
-	public boolean logout(String login) throws RemoteException {
-		for(int i=0; i<users.size(); i++){
-			if (users.get(i).equals(login)) users.remove(i);
-			System.out.println("Users " + login + " logout !");
-			return true;
+	private void notifyAll(String message) throws RemoteException {
+		for(IClient i : users){
+			i.notify(message);
+			System.out.println(i.getName() + ", ");
 		}
-		return false;
+	}
+
+	public boolean logout(IClient client) throws RemoteException {
+		try {
+			client.notify("Thanks for coming !");
+			users.remove(client);
+			notifyAll(client.getName() +  " has left the channel");
+			return true;
+		} catch (Exception e){
+			return false;
+		}
 	}
 	
 }

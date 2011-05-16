@@ -9,5 +9,5 @@ public interface Distante extends Remote{
 
 	public String echo() throws RemoteException;
 	public boolean login(String login, String password, IClient client) throws RemoteException;
-	public boolean logout(String login) throws RemoteException;
+	public boolean logout(IClient client) throws RemoteException;
 }
