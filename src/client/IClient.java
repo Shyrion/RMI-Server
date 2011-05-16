@@ -1,6 +1,8 @@
 package client;
 
-public interface IClient {
+import java.rmi.Remote;
+
+public interface IClient extends Remote{
 
 	void notify(String string);
 
