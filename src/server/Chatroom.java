@@ -49,17 +49,10 @@ public class Chatroom extends UnicastRemoteObject implements Distante{
 		try{
 			users.add(client);
 			client.setName(login);
-			notifyAll(client.getName() +  " has join the channel");
+			notifyAllConnect(client.getName());
 			return true;
 		} catch (Exception e){
 			return false;
-		}
-	}
-	
-	private void notifyAll(String message) throws RemoteException {
-		for(IClient i : users){
-			i.notify(message);
-			System.out.println(i.getName() + ", ");
 		}
 	}
 
@@ -67,10 +60,48 @@ public class Chatroom extends UnicastRemoteObject implements Distante{
 		try {
 			client.notify("Thanks for coming !");
 			users.remove(client);
-			notifyAll(client.getName() +  " has left the channel");
+			notifyAllDisconnect(client.getName());
 			return true;
 		} catch (Exception e){
 			return false;
+		}
+	}
+	
+	public boolean sendPrivateMessage(IClient sender, IClient receiver, String message){
+		try{
+			sender.notify(sender.getName() + " says: " + message);
+			receiver.notify(sender.getName() + " says: " + message);
+			return true;
+		} catch (Exception e){
+			return false;
+		}
+	}
+	
+	public boolean broadCastMessage(IClient sender, String message){
+		try{
+			notifyAll(sender.getName() + " says: " + message);
+			return true;
+		} catch (Exception e){
+			return false;
+		}
+	}
+	
+	private void notifyAllConnect(String message) throws RemoteException {
+		for(IClient i : users){
+			i.notifyConnect(message);
+		}
+	}
+	
+	private void notifyAllDisconnect(String message) throws RemoteException {
+		for(IClient i : users){
+			i.notifyDisconnect(message);
+		}
+	}
+	
+	private void notifyAll(String message) throws RemoteException {
+		for(IClient i : users){
+			i.notify(message);
+			System.out.println(i.getName() + ", ");
 		}
 	}
 	
