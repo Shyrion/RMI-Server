@@ -41,11 +41,15 @@ public class Chatroom extends UnicastRemoteObject implements Distante {
 	}
 
 	@Override
-	public boolean login(String login, String password, IClient client)
-	          throws RemoteException {
+	public boolean login(String login, String password, IClient client) throws RemoteException {
 		try {
-			users.add(client);
 			client.setName(login);
+			if (users.size() > 0) {
+				for (IClient c : users) {
+					client.notifyConnect(c.getName());
+				}
+			}
+			users.add(client);
 			notifyAllConnect(client.getName());
 			return true;
 		} catch (Exception e) {
@@ -55,9 +59,10 @@ public class Chatroom extends UnicastRemoteObject implements Distante {
 
 	public boolean logout(IClient client) throws RemoteException {
 		try {
-			client.notify("Thanks for coming !");
-			users.remove(client);
-			notifyAllDisconnect(client.getName());
+			if (users.contains(client)) {
+				notifyAllDisconnect(client.getName());
+				users.remove(client);
+			}
 			return true;
 		} catch (Exception e) {
 			return false;
@@ -66,15 +71,19 @@ public class Chatroom extends UnicastRemoteObject implements Distante {
 
 	public boolean sendPrivateMessage(IClient sender, IClient receiver, String message)
 	          throws RemoteException {
-		sender.notify(sender.getName() + " says: " + message);
-		receiver.notify(sender.getName() + " says: " + message);
-		return true;
+		try {
+			sender.notifyMessage(sender.getName(), message);
+			receiver.notifyMessage(sender.getName(), message);
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 
-	public boolean broadCastMessage(IClient sender, String message)
-	          throws RemoteException {
+	public boolean broadCastMessage(IClient sender, String message) throws RemoteException {
 		try {
-			notifyAll(sender.getName() + " says: " + message);
+			notifyAllMessage(sender.getName(), message);
 			return true;
 		} catch (Exception e) {
 			System.err.println(e);
@@ -102,14 +111,13 @@ public class Chatroom extends UnicastRemoteObject implements Distante {
 		}
 	}
 
-	private void notifyAll(String message) throws RemoteException {
+	private void notifyAllMessage(String sender, String message) throws RemoteException {
 		for (IClient i : users) {
 			try {
-				i.notify(message);
+				i.notifyMessage(sender, message);
 			} catch (Exception e) {
 				System.err.println(e);
 			}
 		}
 	}
-
 }
