@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import client.IClient;
 
 public class Chatroom extends UnicastRemoteObject implements Distante {
-
+	private static final long serialVersionUID = 1L;
 	ArrayList<IClient> users;
 	String name;
 
