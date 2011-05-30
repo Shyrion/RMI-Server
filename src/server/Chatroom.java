@@ -1,67 +1,74 @@
 package server;
 
 import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 
-import client.IClient;
+import client.ItfClient;
+import client.SPClient;
 
-public class Chatroom extends UnicastRemoteObject implements Distante {
-	private static final long serialVersionUID = 1L;
-	ArrayList<IClient> users;
-	String name;
+@SuppressWarnings("serial")
+public class Chatroom extends UnicastRemoteObject implements IChatroom {
+	private ArrayList<SPClient> users;
+	private String name;
+	private final String password = "t";
 
-	protected Chatroom() throws RemoteException {
+	public Chatroom() throws RemoteException {
 		super();
-		users = new ArrayList<IClient>();
+		users = new ArrayList<SPClient>();
 	}
 
-	protected Chatroom(String name) throws RemoteException {
+	public Chatroom(String name) throws RemoteException {
 		super();
 		this.name = name;
-		users = new ArrayList<IClient>();
+		users = new ArrayList<SPClient>();
 	}
 
-	public static void main(String[] args) {
+	public SPClient getClient(String name) throws RemoteException {
+		for (SPClient c : users) {
+			if (c.getName().equals(name)) {
+				return c;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public boolean login(SPClient client, String pwd) throws RemoteException {
 		try {
-			Registry reg = LocateRegistry.getRegistry();
-			Distante obj = new Chatroom("Chatroom 1");
-			reg.rebind("cr1", obj);
-		} catch (RemoteException e) {
-			e.printStackTrace();
+			if (pwd.equals(password)) {
+				if (users.size() > 0) {
+					for (SPClient c : users) {
+						if (client.getName().equals(c.getName())) {
+							return false;
+						}
+					}
+					for (SPClient c : users) {
+						client.notifyConnect(c);
+					}
+				}
+				users.add(client);
+				notifyAllConnect(client);
+			} else {
+				return false;
+			}
+			return true;
+		} catch (Exception e) {
+			return false;
 		}
 	}
 
-	@Override
-	public String echo() throws RemoteException {
-		System.out.println("Echo depuis le serveur !");
-		return "Salut !";
-	}
-
-	@Override
-	public boolean login(String login, String password, IClient client) throws RemoteException {
+	public boolean logout(SPClient client) throws RemoteException {
 		try {
-			client.setName(login);
-			if (users.size() > 0) {
-				for (IClient c : users) {
-					client.notifyConnect(c.getName());
+			boolean found = false;
+			for (SPClient c : users) {
+				if (c.getName().equals(client.getName())) {
+					users.remove(c);
+					found = true;
 				}
 			}
-			users.add(client);
-			notifyAllConnect(client.getName());
-			return true;
-		} catch (Exception e) {
-			return false;
-		}
-	}
-
-	public boolean logout(IClient client) throws RemoteException {
-		try {
-			if (users.contains(client)) {
+			if (found) {
 				notifyAllDisconnect(client.getName());
-				users.remove(client);
 			}
 			return true;
 		} catch (Exception e) {
@@ -69,21 +76,9 @@ public class Chatroom extends UnicastRemoteObject implements Distante {
 		}
 	}
 
-	public boolean sendPrivateMessage(IClient sender, IClient receiver, String message)
-	          throws RemoteException {
+	public boolean broadCastMessage(String sender, String message) throws RemoteException {
 		try {
-			sender.notifyMessage(sender.getName(), message);
-			receiver.notifyMessage(sender.getName(), message);
-			return true;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-	}
-
-	public boolean broadCastMessage(IClient sender, String message) throws RemoteException {
-		try {
-			notifyAllMessage(sender.getName(), message);
+			notifyAllMessage(sender, message);
 			return true;
 		} catch (Exception e) {
 			System.err.println(e);
@@ -91,10 +86,10 @@ public class Chatroom extends UnicastRemoteObject implements Distante {
 		}
 	}
 
-	private void notifyAllConnect(String message) throws RemoteException {
-		for (IClient i : users) {
+	private void notifyAllConnect(SPClient client) throws RemoteException {
+		for (SPClient c : users) {
 			try {
-				i.notifyConnect(message);
+				c.notifyConnect(client);
 			} catch (Exception e) {
 				System.err.println(e);
 			}
@@ -102,7 +97,7 @@ public class Chatroom extends UnicastRemoteObject implements Distante {
 	}
 
 	private void notifyAllDisconnect(String message) throws RemoteException {
-		for (IClient i : users) {
+		for (ItfClient i : users) {
 			try {
 				i.notifyDisconnect(message);
 			} catch (Exception e) {
@@ -112,7 +107,7 @@ public class Chatroom extends UnicastRemoteObject implements Distante {
 	}
 
 	private void notifyAllMessage(String sender, String message) throws RemoteException {
-		for (IClient i : users) {
+		for (ItfClient i : users) {
 			try {
 				i.notifyMessage(sender, message);
 			} catch (Exception e) {
